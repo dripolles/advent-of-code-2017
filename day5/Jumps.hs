@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 import Control.Monad.Primitive (PrimMonad, PrimState)
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as M
@@ -12,12 +14,12 @@ evalJumpsM :: PrimMonad m
 
 evalJumpsM mv f p = do
     let size = M.length mv
-        jump mv p count
+        jump mv p !count
             | p < 0 || p >= size = return count
             | otherwise = do
                 diff <- M.unsafeRead mv p
                 let p' = p + diff
-                M.unsafeWrite mv p (f diff)
+                M.unsafeModify mv f p
                 jump mv p' (count+1)
 
     jump mv 0 0
